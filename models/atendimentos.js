@@ -32,11 +32,11 @@ class Atendimento {
 
             const sql = 'INSERT INTO Atendimentos SET ?';
 
-            conexao.query(sql, atendimentoDatado, (erro, resultados) => {
+            conexao.query(sql, atendimentoDatado, (erro) => {
                 if (erro) {
                     res.status(400).json(erro);
                 } else {
-                    res.status(201).json(resultados);
+                    res.status(201).json(atendimento);
                 } 
             });
         }
@@ -77,7 +77,19 @@ class Atendimento {
             if(erro) {
                 res.status(400).json(erro);
             } else {
-                res.status(200).json(resultados);
+                res.status(200).json({...valores, id});
+            }
+        })
+    }
+
+    deleta(id, res) {
+        const sql = 'DELETE FROM Atendimentos WHERE id=?';
+
+        conexao.query(sql, id, (erro, resultados) => {
+            if(erro) {
+                res.status(400).json(erro);
+            } else {
+                res.status(200).json({id});
             }
         })
     }
