@@ -4,34 +4,49 @@ const conexao = require('../infraestrutura/database/conexao');
 const repositorio = require('../repositorios/atendimentos');
 
 class Atendimento {
-    adiciona(atendimento) {
+    
+        constructor() {
+        
+            this.dataEhValida = ({data, dataCriacao}) => moment(data).isSameOrAfter(dataCriacao);
+            this.clienteEhValido = (tamanho) => tamanho >= 5;
+            this.valida = parametros => this.validacoes.filter( campo => {
+                this.validacoes.filter(campo => {
+                    const { nome } = campo;
+                    const parametro = parametros[nome];
+                    
+                    return !campo.valido(parametro);
+                    });
+                });
+            this.validacoes = [
+                {
+                    nome: 'data',
+                    valido: this.dataEhValida,
+                    mensagem: 'Data deve ser maior ou igual a data atual'
+                },
+                {
+                    nome: 'cliente',
+                    valido: this.clienteEhValido,
+                    mensagem: 'Cliente deve ter pelo menos 5 caracteres'
+                }
+            ]
+
+        }
+        adiciona(atendimento) {
         const dataCriacao = moment().format('YYYY-MM-DD HH:MM:SS');
         const data = moment(atendimento.data, 'DD/MM/YYYY').format('YYYY-MM-DD HH:MM:SS');
-        
-        const dataEhValida = moment(data).isSameOrAfter(dataCriacao);
-        const clienteEhValido = atendimento.cliente.length >= 5;
 
-        const validacoes = [
-            {
-                nome: 'data',
-                valido: dataEhValida,
-                mensagem: 'Data deve ser maior ou igual a data atual'
-            },
-            {
-                nome: 'cliente',
-                valido: clienteEhValido,
-                mensagem: 'Cliente deve ter pelo menos 5 caracteres'
-            }
-        ]
+        const parametros = {
+            data: { data, dataCriacao },
+            cliente :{ tamanho: atendimento.cliente.length }
+        }
 
-        const erros = validacoes.filter(campo => !campo.valido);
+        const erros = this.valida(parametros);
         const existemErros = erros.length;
 
         if(existemErros) {
             return new Promise((resolve, reject) => reject(erros));
         } else {
             const atendimentoDatado = {...atendimento, dataCriacao, data};
-
 
             return repositorio.adiciona(atendimentoDatado)
                 .then(resultados => {
